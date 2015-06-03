@@ -99,7 +99,7 @@ public class MainActivity extends Activity implements LocationListener {
         try {
                     OutputStreamWriter outputStreamWriter = new
                     OutputStreamWriter(openFileOutput(fileName, Context.MODE_PRIVATE));
-            outputStreamWriter.write(data);
+            outputStreamWriter.append(data);
             outputStreamWriter.close();
         }
         catch (IOException e) {
@@ -113,7 +113,7 @@ public class MainActivity extends Activity implements LocationListener {
 
     public void readFileFromInternalStorage(String dataFile){
         String fileName = dataFile;
-        String logData = "log data: ";
+        String logData = "";
                 try {
                     String line;
                     Log.d("my app", "read log started...");
