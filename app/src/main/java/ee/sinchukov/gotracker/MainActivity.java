@@ -2,6 +2,7 @@ package ee.sinchukov.gotracker;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -20,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 
@@ -34,7 +36,7 @@ public class MainActivity extends Activity implements LocationListener {
 
     public static final String FILENAME = "location.txt";
 
-    String logData = "no data";
+    private static ArrayList<MyLocation> myLocationsList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +94,12 @@ public class MainActivity extends Activity implements LocationListener {
         textViewLatitude.setText(date + " Latitude:" + location.getLatitude());
 
         writeToFile(date + " Longitude:" + location.getLongitude() + " Latitude:" + location.getLatitude(), FILENAME);
+        myLocationsList.add(new MyLocation(date, " "+location.getLatitude() , " "+location.getLongitude()));
 
+    }
+
+    public static ArrayList<MyLocation> getMyLocationsList(){
+        return myLocationsList;
     }
 
     private void writeToFile(String data, String fileName) {
@@ -109,6 +116,9 @@ public class MainActivity extends Activity implements LocationListener {
 
     public void readLog(View view){
         readFileFromInternalStorage(FILENAME);
+
+        Intent intent = new Intent(this,LocationLog.class);
+        startActivity(intent);
     }
 
     public void readFileFromInternalStorage(String dataFile){
