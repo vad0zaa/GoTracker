@@ -14,27 +14,35 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 public class MainActivity extends Activity implements LocationListener {
 
     public static String TAG = "my app";
-    private  TextView tvLatitude;
-    private TextView tvLongitude;
+    private  TextView textViewLatitude;
+    private TextView textViewLongitude;
 
     LocationManager locationManager ;
     String provider;
 
+    public static final String FILENAME = "location.txt";
+
+    String logData = "no data";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        tvLongitude = (TextView)findViewById(R.id.textViewLongitude);
-        tvLatitude = (TextView)findViewById(R.id.textViewLatitude);
+        textViewLongitude = (TextView)findViewById(R.id.textViewLongitude);
+        textViewLatitude = (TextView)findViewById(R.id.textViewLatitude);
 
         // Getting LocationManager object
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
@@ -57,7 +65,7 @@ public class MainActivity extends Activity implements LocationListener {
             // Get the location from the given provider
             Location location = locationManager.getLastKnownLocation(provider);
 
-            locationManager.requestLocationUpdates(provider, 5000, 1, this);
+            locationManager.requestLocationUpdates(provider, 1000, 1, this);
 
             if(location!=null)
                 onLocationChanged(location);
@@ -77,9 +85,57 @@ public class MainActivity extends Activity implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
 
-        tvLongitude.setText("Longitude:" + location.getLongitude());
-        tvLatitude.setText("Latitude:" + location.getLatitude() );
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
+        String date = df.format(new Date());
+
+        textViewLongitude.setText(date + " Longitude:" + location.getLongitude());
+        textViewLatitude.setText(date + " Latitude:" + location.getLatitude());
+
+        writeToFile(date + " Longitude:" + location.getLongitude() + " Latitude:" + location.getLatitude(), FILENAME);
+
     }
+
+    private void writeToFile(String data, String fileName) {
+        try {
+                    OutputStreamWriter outputStreamWriter = new
+                    OutputStreamWriter(openFileOutput(fileName, Context.MODE_PRIVATE));
+            outputStreamWriter.write(data);
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e(MainActivity.TAG, "File write failed: " + e.toString());
+        }
+    }
+
+    public void readLog(View view){
+        readFileFromInternalStorage(FILENAME);
+    }
+
+    public void readFileFromInternalStorage(String dataFile){
+        String fileName = dataFile;
+        String logData = "log data: ";
+                try {
+                    String line;
+                    Log.d("my app", "read log started...");
+                    BufferedReader reader;
+                    InputStream stream = openFileInput(fileName);
+                    reader = new BufferedReader(new InputStreamReader(stream));
+                    line = reader.readLine();
+                    while(line != null){
+                        Log.d("my app","read line: "+ line);
+                        logData = logData +line;
+                        line = reader.readLine();
+                    }
+                 stream.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+        Log.d("my app","all lines: "+ logData);
+        Toast.makeText(this, logData, Toast.LENGTH_LONG).show();
+    }
+
+
+
 
 
     @Override
@@ -95,19 +151,6 @@ public class MainActivity extends Activity implements LocationListener {
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
         // TODO Auto-generated method stub
-    }
-
-
-    private void writeToFile(String data, String fileName) {
-        try {
-            OutputStreamWriter outputStreamWriter = new
-                    OutputStreamWriter(openFileOutput(fileName, Context.MODE_PRIVATE));
-            outputStreamWriter.write(data);
-            outputStreamWriter.close();
-        }
-        catch (IOException e) {
-            Log.e(TAG, "File write failed: " + e.toString());
-        }
     }
 
     @Override

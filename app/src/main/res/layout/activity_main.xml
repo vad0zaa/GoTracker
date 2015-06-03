@@ -47,4 +47,15 @@
         android:layout_alignParentStart="true"
         android:layout_marginTop="35dp" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="read log"
+        android:id="@+id/readLogBtn"
+        android:layout_below="@+id/textViewLatitude"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="27dp"
+        android:onClick="readLog"/>
+
 </RelativeLayout>
