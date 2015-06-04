@@ -15,10 +15,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -36,7 +34,7 @@ public class MainActivity extends Activity implements LocationListener {
 
     public static final String FILENAME = "location.txt";
 
-    private static ArrayList<MyLocation> myLocationsList = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,63 +85,35 @@ public class MainActivity extends Activity implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
 
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
+        SimpleDateFormat df = new SimpleDateFormat("dd.MMM HH:mm:ss");
         String date = df.format(new Date());
 
         textViewLongitude.setText(date + " Longitude:" + location.getLongitude());
         textViewLatitude.setText(date + " Latitude:" + location.getLatitude());
 
-        writeToFile(date + " Longitude:" + location.getLongitude() + " Latitude:" + location.getLatitude(), FILENAME);
-        myLocationsList.add(new MyLocation(date, " "+location.getLatitude() , " "+location.getLongitude()));
-
+        appendToFile(date + "," + location.getLongitude() + "," + location.getLatitude(), FILENAME);
     }
 
-    public static ArrayList<MyLocation> getMyLocationsList(){
-        return myLocationsList;
-    }
-
-    private void writeToFile(String data, String fileName) {
+    private void appendToFile(String data, String fileName) {
         try {
-                    OutputStreamWriter outputStreamWriter = new
-                    OutputStreamWriter(openFileOutput(fileName, Context.MODE_PRIVATE));
-            outputStreamWriter.append(data);
-            outputStreamWriter.close();
+
+             OutputStreamWriter outputStreamWriter = new
+             OutputStreamWriter(openFileOutput(fileName, Context.MODE_APPEND));
+            BufferedWriter buffWriter = new BufferedWriter(outputStreamWriter);
+            buffWriter.write(data);
+            buffWriter.newLine();
+            buffWriter.flush();
+            buffWriter.close();
         }
         catch (IOException e) {
             Log.e(MainActivity.TAG, "File write failed: " + e.toString());
         }
     }
 
-    public void readLog(View view){
-        readFileFromInternalStorage(FILENAME);
-
+    public void showLocationLog(View view){
         Intent intent = new Intent(this,LocationLog.class);
         startActivity(intent);
     }
-
-    public void readFileFromInternalStorage(String dataFile){
-        String fileName = dataFile;
-        String logData = "";
-                try {
-                    String line;
-                    Log.d("my app", "read log started...");
-                    BufferedReader reader;
-                    InputStream stream = openFileInput(fileName);
-                    reader = new BufferedReader(new InputStreamReader(stream));
-                    line = reader.readLine();
-                    while(line != null){
-                        Log.d("my app","read line: "+ line);
-                        logData = logData +line;
-                        line = reader.readLine();
-                    }
-                 stream.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-        Log.d("my app","all lines: "+ logData);
-        Toast.makeText(this, logData, Toast.LENGTH_LONG).show();
-    }
-
 
 
 
