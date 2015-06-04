@@ -8,6 +8,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,25 +22,33 @@ import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MainActivity extends Activity implements LocationListener {
 
-    public static String TAG = "my app";
+    public static String TAG = "My App";
     private  TextView textViewLatitude;
     private TextView textViewLongitude;
-
+    SimpleDateFormat dateFormat;
     LocationManager locationManager ;
     String provider;
 
     public static final String FILENAME = "location.txt";
 
+    Timer timer;
+    TimerTask timerTask;
+    final Handler handler = new Handler();
 
+    Location lastLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        dateFormat = new SimpleDateFormat("dd.MMM HH:mm:ss");
 
         textViewLongitude = (TextView)findViewById(R.id.textViewLongitude);
         textViewLatitude = (TextView)findViewById(R.id.textViewLatitude);
@@ -69,8 +78,9 @@ public class MainActivity extends Activity implements LocationListener {
 
             locationManager.requestLocationUpdates(provider, 1000, 1, this);
 
-            if(location!=null)
-                onLocationChanged(location);
+            if(location!=null) {
+                startTimer();
+            }
             else
                 Toast.makeText(getBaseContext(), "Location can't be retrieved", Toast.LENGTH_SHORT).show();
 
@@ -81,20 +91,20 @@ public class MainActivity extends Activity implements LocationListener {
     }
 
     public void stopTracker(View view){
+        stopTimer();
         locationManager.removeUpdates(this);
         cleanFile(FILENAME);
     }
 
     @Override
     public void onLocationChanged(Location location) {
-
-        SimpleDateFormat df = new SimpleDateFormat("dd.MMM HH:mm:ss");
-        String date = df.format(new Date());
-
+        lastLocation = location;
+        String date = dateFormat.format(new Date());
         textViewLongitude.setText(date + " Longitude:" + location.getLongitude());
         textViewLatitude.setText(date + " Latitude:" + location.getLatitude());
 
-        appendToFile(date + "," + location.getLongitude() + "," + location.getLatitude(), FILENAME);
+        // next line is commented because we are writing to file with timer
+        //appendToFile(date + "," + location.getLongitude() + "," + location.getLatitude(), FILENAME);
     }
 
     private void appendToFile(String data, String fileName) {
@@ -118,8 +128,6 @@ public class MainActivity extends Activity implements LocationListener {
         startActivity(intent);
     }
 
-
-
     private void cleanFile(String fileName) {
         try {
             OutputStreamWriter outputStreamWriter = new
@@ -131,6 +139,36 @@ public class MainActivity extends Activity implements LocationListener {
             Log.e(MainActivity.TAG, "File write failed: " + e.toString());
         }
     }
+
+    public void initializeTimerTask() {
+        timerTask = new TimerTask() {
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {
+                        String date = dateFormat.format(new Date());
+                        Log.d(TAG,date + "," + lastLocation.getLongitude() + "," + lastLocation.getLatitude());
+                        appendToFile(date + "," + lastLocation.getLongitude() + "," + lastLocation.getLatitude(),FILENAME);
+                    }
+                });
+            }
+        };
+    }
+
+    public void startTimer(){
+        timer = new Timer();
+        initializeTimerTask();
+        //schedule the timer, after the first 1000ms the TimerTask will run every 30000ms
+        timer.schedule(timerTask, 1000, 3000);
+    }
+
+    public void stopTimer() {
+        //stop the timer, if it's not already null
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+    }
+
 
     @Override
     public void onProviderDisabled(String provider) {
