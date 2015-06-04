@@ -53,6 +53,8 @@ public class MainActivity extends Activity implements LocationListener {
         // Getting the name of the provider that meets the criteria
         provider = locationManager.getBestProvider(criteria, false);
 
+        // Clean location data log file
+        cleanFile(FILENAME);
 
     }
 
@@ -80,6 +82,7 @@ public class MainActivity extends Activity implements LocationListener {
 
     public void stopTracker(View view){
         locationManager.removeUpdates(this);
+        cleanFile(FILENAME);
     }
 
     @Override
@@ -117,6 +120,17 @@ public class MainActivity extends Activity implements LocationListener {
 
 
 
+    private void cleanFile(String fileName) {
+        try {
+            OutputStreamWriter outputStreamWriter = new
+                    OutputStreamWriter(openFileOutput(fileName, Context.MODE_PRIVATE));
+            outputStreamWriter.write("");
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e(MainActivity.TAG, "File write failed: " + e.toString());
+        }
+    }
 
     @Override
     public void onProviderDisabled(String provider) {
