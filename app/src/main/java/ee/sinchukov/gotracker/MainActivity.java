@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,11 +30,13 @@ import java.util.TimerTask;
 public class MainActivity extends Activity implements LocationListener {
 
     public static String TAG = "My App";
+    private EditText editTextPeriod;
     private  TextView textViewLatitude;
     private TextView textViewLongitude;
     SimpleDateFormat dateFormat;
     LocationManager locationManager ;
     String provider;
+    int period = 5;
 
     public static final String FILENAME = "location.txt";
 
@@ -50,6 +53,9 @@ public class MainActivity extends Activity implements LocationListener {
 
         dateFormat = new SimpleDateFormat("dd.MMM HH:mm:ss");
 
+        editTextPeriod = (EditText)findViewById(R.id.editTextPeriod);
+        editTextPeriod.setText("5");
+
         textViewLongitude = (TextView)findViewById(R.id.textViewLongitude);
         textViewLatitude = (TextView)findViewById(R.id.textViewLatitude);
 
@@ -61,22 +67,27 @@ public class MainActivity extends Activity implements LocationListener {
 
         // Getting the name of the provider that meets the criteria
         provider = locationManager.getBestProvider(criteria, false);
-
-        // Clean location data log file
-        cleanFile(FILENAME);
-
     }
 
 
 
     public void startTracker(View view){
 
+
+
         if(provider!=null && !provider.equals("")){
+
+            // get location every x seconds
+            try{ period = Integer.parseInt(editTextPeriod.getText().toString());}
+            catch(Exception e){}
+
+            // Clean location data log file
+            cleanFile(FILENAME);
 
             // Get the location from the given provider
             Location location = locationManager.getLastKnownLocation(provider);
 
-            locationManager.requestLocationUpdates(provider, 1000, 1, this);
+            locationManager.requestLocationUpdates(provider, period*1000, 1, this);
 
             if(location!=null) {
                 startTimer();
@@ -93,7 +104,6 @@ public class MainActivity extends Activity implements LocationListener {
     public void stopTracker(View view){
         stopTimer();
         locationManager.removeUpdates(this);
-        cleanFile(FILENAME);
     }
 
     @Override
@@ -148,6 +158,8 @@ public class MainActivity extends Activity implements LocationListener {
                         String date = dateFormat.format(new Date());
                         Log.d(TAG,date + "," + lastLocation.getLongitude() + "," + lastLocation.getLatitude());
                         appendToFile(date + "," + lastLocation.getLongitude() + "," + lastLocation.getLatitude(),FILENAME);
+                        Toast toast = Toast.makeText(getApplicationContext(),date+ " saving location...", Toast.LENGTH_SHORT);
+                        toast.show();
                     }
                 });
             }
@@ -157,8 +169,8 @@ public class MainActivity extends Activity implements LocationListener {
     public void startTimer(){
         timer = new Timer();
         initializeTimerTask();
-        //schedule the timer, after the first 1000ms the TimerTask will run every 30000ms
-        timer.schedule(timerTask, 1000, 3000);
+        //schedule the timer, after the first 1000ms the TimerTask will run every period*1000ms
+        timer.schedule(timerTask, 1000, period*1000);
     }
 
     public void stopTimer() {

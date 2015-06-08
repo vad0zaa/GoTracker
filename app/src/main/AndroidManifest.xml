@@ -10,6 +10,8 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
+        <uses-library android:name="com.google.android.maps" />
+
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name" >
@@ -27,6 +29,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="ee.sinchukov.gotracker.MainActivity" />
         </activity>
+
+        <uses-library android:name="com.google.android.maps" />
+
+
     </application>
 
 </manifest>
